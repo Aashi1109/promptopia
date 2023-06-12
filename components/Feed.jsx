@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import PromptCard from "./PromptCard";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const PromptCardList = ({ data, handleTagClick }) => {
   return (
@@ -18,9 +19,38 @@ const PromptCardList = ({ data, handleTagClick }) => {
 const Feed = () => {
   const [searchText, setSearchText] = useState("");
   const [loadedData, setLoadedData] = useState([]);
+  const [filLoadedData, setFilLoadedData] = useState([]);
 
+  const searchParams = useSearchParams();
+  const tagSearch = searchParams.get("tag")?.replace("#", "");
+
+  const handleFilter = (ssText) => {
+    if (ssText !== "") {
+      const filteredData = filLoadedData.filter((data) => {
+        if (
+          data.prompt.includes(ssText) ||
+          data.tag.includes(ssText) ||
+          data.creator.username.includes(ssText)
+        ) {
+          return true;
+        }
+        return false;
+      });
+
+      setLoadedData((prev) => [...filteredData]);
+    } else {
+      setLoadedData((prev) => [...loadedData]);
+    }
+  };
   const handleSearchChange = (e) => {
-    setSearchText(e.target.value);
+    const inputSearchText = e.target.value;
+    setSearchText(inputSearchText);
+    handleFilter(inputSearchText);
+    // handle filter
+  };
+  const handleTagClick = (tag) => {
+    setSearchText(`#${tag}`);
+    handleFilter(tag);
   };
 
   useEffect(() => {
@@ -29,9 +59,13 @@ const Feed = () => {
       const respData = await resp.json();
 
       setLoadedData(respData);
+      setFilLoadedData(respData);
     };
-    getPosts();
+    getPosts().then((_) => {
+      if (tagSearch) handleTagClick(tagSearch);
+    });
   }, []);
+
   return (
     <section className="feed">
       <form className="relative w-full flex-center">
@@ -42,9 +76,12 @@ const Feed = () => {
           value={searchText}
           onChange={handleSearchChange}
         />
+        {/* <button type="button" className="search_input-button">
+          &times;
+        </button> */}
       </form>
 
-      <PromptCardList data={loadedData} handleTagClick={() => {}} />
+      <PromptCardList data={loadedData} handleTagClick={handleTagClick} />
     </section>
   );
 };

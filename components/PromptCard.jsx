@@ -1,24 +1,32 @@
 import { useSession } from "next-auth/react";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
 const PromptCard = ({ post, handleTagClick, handleEdit, handleDelete }) => {
   const [copied, setCopied] = useState("");
   const { data: session } = useSession();
   const pathname = usePathname();
+  const router = useRouter();
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     setCopied(post.prompt);
-    navigator.clipboard.writeText(copied);
+    await navigator.clipboard.writeText(post.prompt);
     setTimeout(() => {
       setCopied("");
     }, 3000);
   };
+
+  const handleProfileClick = (id) => {
+    router.push(`/profile/?id=${id}`);
+  };
   return (
     <div className="prompt_card">
       <div className="flex justify-between items-start gap-5">
-        <div className="flex-1 flex justify-start items-center gap-3 cursor-pointer">
+        <div
+          className="flex-1 flex justify-start items-center gap-3 cursor-pointer"
+          onClick={handleProfileClick.bind(null, post.creator._id)}
+        >
           <Image
             src={post.creator.image}
             alt={post.creator.username}
@@ -39,7 +47,7 @@ const PromptCard = ({ post, handleTagClick, handleEdit, handleDelete }) => {
         <div className="copy_btn" onClick={handleCopy}>
           <Image
             src={
-              copied == post.prompt
+              copied === post.prompt
                 ? "assets/icons/tick.svg"
                 : "assets/icons/copy.svg"
             }

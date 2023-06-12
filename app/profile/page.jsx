@@ -2,48 +2,48 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 
 import Profile from "@components/Profile";
+import { useSearchParams } from "next/navigation";
 const MyProfile = () => {
   const { data: session } = useSession();
   const [profData, setProfData] = useState([]);
-
-  const router = useRouter();
-
-  let refreshProfileData = false;
-
-  const handleDelete = async (id) => {
-    const checkDelete = confirm("Do you want to delete post ?");
-    if (checkDelete) {
-      await fetch(`/api/prompt/${id}`, {
-        method: "DELETE",
-      });
-
-      const filteredPosts = profData.filter((prompt) => prompt._id === id);
-      setProfData(filteredPosts);
-    }
-  };
-  const handleEdit = async (id) => {
-    router.push(`/update-prompt?id=${id}`);
-  };
+  const searchParams = useSearchParams();
+  const userId = searchParams.get("id");
+  const [userData, setUserData] = useState({});
 
   useEffect(() => {
     const fetchData = async () => {
-      const resp = await fetch(`/api/users/${session?.user.id}/posts`);
+      const resp = await fetch(
+        `/api/users/${userId ?? session?.user.id}/posts`
+      );
       const respData = await resp.json();
 
       setProfData(respData);
     };
-    if (session?.user.id) fetchData();
-  }, [refreshProfileData]);
+    if (session?.user.id || userId) fetchData();
+  }, []);
+  useEffect(() => {
+    const getUserData = async () => {
+      const resp = await fetch(`/api/users/${userId}`);
+      const respData = await resp.json();
+      setUserData(respData);
+    };
+    if (userId) getUserData();
+  }, []);
   return (
     <Profile
-      name="My"
-      desc="Welcome to my profile page"
+      name={
+        userData && session?.user.id !== userData._id
+          ? `${userData.username}'s`
+          : "My"
+      }
+      desc={
+        userData.username && session?.user.id !== userData._id
+          ? "Dive into mesmerizing profile with thought-provoking prompts and unleash your imagination using them."
+          : "Welcome to my profile page"
+      }
       data={profData}
-      handleEdit={handleEdit}
-      handleDelete={handleDelete}
     />
   );
 };

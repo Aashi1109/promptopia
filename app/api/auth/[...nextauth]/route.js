@@ -8,6 +8,9 @@ const handler = NextAuth({
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      authorization: {
+        params: { prompt: "consent" },
+      },
     }),
   ],
   callbacks: {
@@ -21,7 +24,7 @@ const handler = NextAuth({
         await connectDB();
         const userExists = await User.findOne({ email: profile.email });
         if (!userExists) {
-          console.log(profile.image)
+          console.log(profile.image);
           await User.create({
             email: profile.email,
             username: profile.name.replace(" ", "").toLowerCase(),

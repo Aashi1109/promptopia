@@ -1,7 +1,26 @@
+import { useRouter } from "next/navigation";
 import PromptCard from "./PromptCard";
 
-const Profile = ({ name, desc, data, handleEdit, handleDelete }) => {
-  const handleTagClick = () => {};
+const Profile = ({ name, desc, data }) => {
+  const router = useRouter();
+  const handleDelete = async (id) => {
+    const checkDelete = confirm("Do you want to delete post ?");
+    if (checkDelete) {
+      await fetch(`/api/prompt/${id}`, {
+        method: "DELETE",
+      });
+
+      const filteredPosts = profData.filter((prompt) => prompt._id === id);
+      setProfData(filteredPosts);
+    }
+  };
+  const handleEdit = async (id) => {
+    router.push(`/update-prompt?id=${id}`);
+  };
+
+  const handleTagClick = (tag) => {
+    router.push(`/?tag=${tag}`);
+  };
   return (
     <section className="w-full">
       <h1 className="head_text text-left">
