@@ -27,10 +27,12 @@ const MyProfile = () => {
     const getUserData = async () => {
       const resp = await fetch(`/api/users/${userId}`);
       const respData = await resp.json();
+
       setUserData(respData);
     };
     if (userId) getUserData();
-  }, []);
+  }, [userId]);
+
   return (
     <Profile
       name={

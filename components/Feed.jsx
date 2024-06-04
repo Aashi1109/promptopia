@@ -1,7 +1,8 @@
 "use client";
+import { removeQueryString } from "@utils/helpers";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import PromptCard from "./PromptCard";
-import { useRouter, useSearchParams } from "next/navigation";
 
 const PromptCardList = ({ data, handleTagClick }) => {
   return (
@@ -22,6 +23,8 @@ const Feed = () => {
   const [filLoadedData, setFilLoadedData] = useState([]);
 
   const searchParams = useSearchParams();
+  const router = useRouter();
+
   const tagSearch = searchParams.get("tag")?.replace("#", "");
 
   const handleFilter = (ssText) => {
@@ -42,15 +45,38 @@ const Feed = () => {
       setLoadedData((prev) => [...loadedData]);
     }
   };
+  const handleFilterByTag = (ssText) => {
+    if (ssText !== "") {
+      const filteredData = filLoadedData.filter((data) => {
+        if (data.tag.includes(ssText)) {
+          return true;
+        }
+        return false;
+      });
+
+      setLoadedData((prev) => [...filteredData]);
+    } else {
+      setLoadedData((prev) => [...loadedData]);
+    }
+  };
+
+  const handleCancelClick = (event) => {
+    setSearchText("");
+    setLoadedData((prev) => [...loadedData]);
+    const updatedUrl = removeQueryString(searchParams, "tag");
+    router.push(updatedUrl);
+  };
+
   const handleSearchChange = (e) => {
     const inputSearchText = e.target.value;
     setSearchText(inputSearchText);
     handleFilter(inputSearchText);
     // handle filter
   };
+
   const handleTagClick = (tag) => {
     setSearchText(`#${tag}`);
-    handleFilter(tag);
+    handleFilterByTag(tag);
   };
 
   useEffect(() => {
@@ -68,7 +94,10 @@ const Feed = () => {
 
   return (
     <section className="feed">
-      <form className="relative w-full flex-center">
+      <form
+        className="relative w-full flex-center"
+        onSubmit={(e) => e.preventDefault()}
+      >
         <input
           type="text"
           className="search_input peer"
@@ -76,9 +105,16 @@ const Feed = () => {
           value={searchText}
           onChange={handleSearchChange}
         />
-        {/* <button type="button" className="search_input-button">
-          &times;
-        </button> */}
+
+        {searchText && (
+          <button
+            type="button"
+            className="search_input-button"
+            onClick={handleCancelClick}
+          >
+            &times;
+          </button>
+        )}
       </form>
 
       <PromptCardList data={loadedData} handleTagClick={handleTagClick} />
