@@ -25,11 +25,11 @@ const Feed = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const tagSearch = searchParams.get("tag")?.replace("#", "");
+  const tagSearch = searchParams.get("tag");
 
   const handleFilter = (ssText) => {
     if (ssText !== "") {
-      const filteredData = filLoadedData.filter((data) => {
+      const filteredData = loadedData.filter((data) => {
         if (
           data.prompt.includes(ssText) ||
           data.tag.includes(ssText) ||
@@ -40,29 +40,29 @@ const Feed = () => {
         return false;
       });
 
-      setLoadedData((prev) => [...filteredData]);
+      setFilLoadedData((prev) => [...filteredData]);
     } else {
-      setLoadedData((prev) => [...loadedData]);
+      setFilLoadedData((prev) => [...loadedData]);
     }
   };
   const handleFilterByTag = (ssText) => {
     if (ssText !== "") {
-      const filteredData = filLoadedData.filter((data) => {
-        if (data.tag.includes(ssText)) {
+      const filteredData = loadedData.filter((data) => {
+        if (data.tag?.includes(ssText)) {
           return true;
         }
         return false;
       });
 
-      setLoadedData((prev) => [...filteredData]);
+      setFilLoadedData((prev) => [...filteredData]);
     } else {
-      setLoadedData((prev) => [...loadedData]);
+      setFilLoadedData((prev) => [...loadedData]);
     }
   };
 
   const handleCancelClick = (event) => {
     setSearchText("");
-    setLoadedData((prev) => [...loadedData]);
+    setFilLoadedData([...loadedData]);
     const updatedUrl = removeQueryString(searchParams, "tag");
     router.push(updatedUrl);
   };
@@ -75,7 +75,7 @@ const Feed = () => {
   };
 
   const handleTagClick = (tag) => {
-    setSearchText(`#${tag}`);
+    setSearchText(tag);
     handleFilterByTag(tag);
   };
 
@@ -84,11 +84,13 @@ const Feed = () => {
       const resp = await fetch("/api/prompt");
       const respData = await resp.json();
 
+      console.log(respData);
+
       setLoadedData(respData);
       setFilLoadedData(respData);
     };
     getPosts().then((_) => {
-      if (tagSearch) handleTagClick(tagSearch);
+      if (tagSearch) handleTagClick(`#${tagSearch}`);
     });
   }, []);
 
@@ -117,7 +119,7 @@ const Feed = () => {
         )}
       </form>
 
-      <PromptCardList data={loadedData} handleTagClick={handleTagClick} />
+      <PromptCardList data={filLoadedData} handleTagClick={handleTagClick} />
     </section>
   );
 };

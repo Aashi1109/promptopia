@@ -19,8 +19,9 @@ const Profile = ({ name, desc, data }) => {
   };
 
   const handleTagClick = (tag) => {
-    router.push(`/?tag=${tag.replace("#", "")}`);
+    router.push(`/?tag=${tag?.replace("#", "")}`);
   };
+
   return (
     <section className="w-full">
       <h1 className="head_text text-left">
